@@ -9,9 +9,13 @@ Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and K
 - Kibana port (```defaul: 5601```)
 - Others such as memory limit, license, docker project name, docker elasticsearch cluster name...
 
+*Please, keep the name as .env for the env file.*
+
+By default, kibana and elastic username is ```elastic```.
+
 With the [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) that we can find in the tutorial, by default three nodes are created for ElasticSearch DB Cluster (es01, es02 and es03), but user can add as many as they want.
 
-*Please, keep the name as .env for the env file.*
+
 
 # References:
 
