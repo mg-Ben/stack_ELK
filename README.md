@@ -1,6 +1,6 @@
 # Stack ELK (Elastic + Logstash + Kibana) container prototype
 
-Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define this parameter values:
+Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define these parameter values:
 
 - ElasticSearch password
 - Kibana password
@@ -9,11 +9,15 @@ Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and K
 - Kibana port (```defaul: 5601```)
 - Others such as memory limit, license, docker project name, docker elasticsearch cluster name...
 
-*Please, keep the name as .env for the env file.*
+The steps you need to follow are:
 
-By default, kibana and elastic username is ```elastic```.
+1. Modify .env template file with the values you want. You have a version for multinode ES cluster and singlenode ES cluster.
+2. Rename that .env file to ```.env``` so that it is recognized by docker.
+3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-composte-singlenode.yml and rename it in the same way.
 
-With the [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) that we can find in the tutorial, by default three nodes are created for ElasticSearch DB Cluster (es01, es02 and es03), but user can add as many as they want.
+By default, kibana and elastic username is ```kibana_system```.
+
+With the [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) that we can find in the tutorial for multinode cluster, by default three nodes are created for ElasticSearch DB Cluster (es01, es02 and es03), but user can add as many as they want.
 
 However, before ```docker compose up```, you must configure [vm.max_map_count](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/docker.html) so as to set how many memory areas ES can use. This parameter is a kernel parameter and you will need to modify it in a different way depending on your host OS. On condition that you haven't configured this setting, the next message error will come up when deploying ES:
 
@@ -22,11 +26,13 @@ stack_elk-es01-1    | {"@timestamp":"2023-12-04T07:08:37.142Z", "log.level":"ERR
 
 ERROR: Elasticsearch exited unexpectedly, with exit code 78
 ```
-To set this parameter on Linux systems, you can access to /etc/sysctl.conf file and add this line: ```vm.max_map_count=262144```. Then, reboot your host machine and run ```docker compose up```.
+
+To set this parameter on Linux systems, you can access to /etc/sysctl.conf file on your host Linux machine and add this line: ```vm.max_map_count=262144```. Then, reboot your host machine and run ```docker compose up```.
 
 On the other hand, we might get a message error from Kibana related to the .kibana index. This is owing to a disk usage of each node (if it's critically low, [Kibana might get unavailable](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/fix-watermark-errors.html)). Typically, you can diagnose these errors using an API. For example, you can GET the resource ```/_cluster/allocation/explain``` while node cluster is running to diagnose this kind of allocation errors, i.e., if you get this error when deploying Kibana, then go to this URL in your navigator:
 
 Error log:
+
 ```
 stack_elk-kibana-1  | [2023-12-04T11:01:04.737+00:00][WARN ][savedobjects-service] Unable to connect to Elasticsearch. Error: index_not_found_exception
 stack_elk-kibana-1  | 	Root causes:
@@ -60,6 +66,8 @@ Error diagnosis:
 ```https://localhost:9200/_cluster/allocation/explain```
 
 If your need credentials, use ```username: kibana_system``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
+
+To solve this issue, you can use singlenode approach, as one node will have got the enough memory space in contrast to three nodes, which memory is shared.
 
 # Run logstash
 
