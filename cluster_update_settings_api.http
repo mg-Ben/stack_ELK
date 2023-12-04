@@ -1,0 +1,7 @@
+GET https://localhost:9200/_cluster/allocation/explain
+
+{
+  "index": ".kibana_8.1.0_001",
+  "shard": 0,
+  "primary": true,
+}
