@@ -69,6 +69,8 @@ If your need credentials, use ```username: kibana_system``` and ```password: <th
 
 To solve this issue, you can use singlenode approach, as one node will have got the enough memory space in contrast to three nodes, which memory is shared.
 
+In addition, unlike reference docker-compose.yml, notice that we have added in a networks section in our docker-compose.yml. That's because later it will be necessary to add the Logstash container to the Elastic-Kibana containers. As Logstash container is a single-use container, we won't deploy it in the docker-compose.up with Kibana and Elastic, but we will deploy it with docker run command to test our .conf file. As a result, it's necessary to specify the network when ´´´docker run´´´ Logstash container later.
+
 # Run logstash
 
 Once we have the three-node Elasticsearch cluster running, we can try to create a logstash pipeline and visualize some metrics from Kibana. For this purpose, we have to run a docker container (single-use, i.e., that container will be removed when it stops running) and then specify where the .conf file is and to where send that .conf file inside the logstash container.
