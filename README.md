@@ -13,7 +13,7 @@ The steps you need to follow are:
 
 1. Modify .env template file with the values you want. You have a version for multinode ES cluster and singlenode ES cluster.
 2. Rename that .env file to ```.env``` so that it is recognized by docker.
-3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-composte-singlenode.yml and rename it in the same way.
+3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-compose-singlenode.yml and rename it in the same way.
 
 By default, kibana and elastic username is ```kibana_system```.
 
@@ -65,17 +65,17 @@ Error diagnosis:
 
 ```https://localhost:9200/_cluster/allocation/explain```
 
-If your need credentials, use ```username: kibana_system``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
+If you need credentials, use ```username: <the ELASTICSEARCH_USERNAME you set in .env file>``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
 
 To solve this issue, you can use singlenode approach, as one node will have got the enough memory space in contrast to three nodes, which memory is shared.
 
-In addition, unlike reference docker-compose.yml, notice that we have added in a networks section in our docker-compose.yml. That's because later it will be necessary to add the Logstash container to the Elastic-Kibana containers. As Logstash container is a single-use container, we won't deploy it in the docker-compose.up with Kibana and Elastic, but we will deploy it with docker run command to test our .conf file. As a result, it's necessary to specify the network when ´´´docker run´´´ Logstash container later.
+In addition, unlike reference docker-compose.yml, notice that we have added in a networks section in our docker-compose.yml. That's because later it will be necessary to add the Logstash container to the Elastic-Kibana containers. As Logstash container is a single-use container, we won't deploy it in the docker-compose.yml with Kibana and Elastic, but we will deploy it with docker run command to test our .conf file. As a result, it's necessary to specify the network when ```docker run``` Logstash container later.
 
 In this repository, there is a .http file to make test HTTP requests from VSCode (you need to install plugin REST Client in VSCode) instead of using your web browsers to run requests towards the ES Database.
 
 # Run logstash
 
-Once we have the three-node Elasticsearch cluster running, we can try to create a logstash pipeline and visualize some metrics from Kibana. For this purpose, we have to run a docker container (single-use, i.e., that container will be removed when it stops running) and then specify where the .conf file is and to where send that .conf file inside the logstash container.
+Once we have the node Elasticsearch cluster running, we can try to create a logstash pipeline and visualize some metrics from Kibana. For this purpose, we have to run a docker container (single-use, i.e., that container will be removed when it stops running) and then specify where the .conf file is and to where send that .conf file inside the logstash container.
 
 ```source .env``` or ```. .env``` (so as to load the .env variables in the current shell session)
 
@@ -83,11 +83,34 @@ Once we have the three-node Elasticsearch cluster running, we can try to create 
 
 Now we have Logstash image, in order to visualize some metrics in Kibana, please follow these steps:
 
-1. Create a ```logstash.yml``` file 
+1. Create a ```logstash.yml``` file. In that ```logstash.yml``` file you will have to specify the Elasticsearch host, because, otherwise, Logstash container tries to connect to localhost, but localhost inside the container (not ES container). As Logstash container will be deployed under the stackELK network (where ES and Kibana are), you can directly set the ES host as the service docker-compose.yml name (i.e., es01 or the name you set in docker-compose.yml for ES service container). Consequently: in ```logstash.yml```, set:
 
-1. ```docker pull``` the logstash image. Please, use the same version you specified in .env file so that Elastic, Kibana and Logstash share the same version. To this end, you can move to the directory where you cloned this repository (i.e., the directory where the .env is located) and then run the following command:
+```
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: ["http://es01:9200"]
+```
 
-```docker run --rm -it -v <>:<>```
+2. Create your .conf file. For example, you can create a Logstash pipeline to ETL (Extract, Transform and Load) data from stdin (Standard Input) terminal into some Elasticsearch index using this .conf file:
+
+```
+input { stdin { } }
+output {
+  elasticsearch {
+    hosts => ["http://es01:9200"]
+    index => "logstashtest"
+  }
+}
+```
+
+3. ```docker run``` the logstash image. Please, use the same version you specified in .env file so that Elastic, Kibana and Logstash share the same version. To this end, you can move to the directory where you cloned this repository (i.e., the directory where the .env is located) and then run the following command:
+
+```
+docker run --rm -it -v ./logstash_configfiles/pipelines/my-conf.conf:/usr/share/logstash/pipeline/my-conf.conf -v ./logstash_configfiles/settings/logstash.yml:/usr/share/logstash/config/logstash.yml --network stack_elk_stackELK-net docker.elastic.co/logstash/logstash:${STACK_VERSION}
+```
+
+Once you have Logstash running, you can write something on terminal and then access to logstashtest index in ElasticSearch node on your browser (http://localhost:9200/logstashtest) to check out whether your input data has been loaded in Elasticsearch or not.
+
+Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
 
 # References:
 
