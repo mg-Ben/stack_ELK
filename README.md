@@ -69,7 +69,7 @@ If you need credentials, use ```username: <the ELASTICSEARCH_USERNAME you set in
 
 To solve this issue, you can use singlenode approach, as one node will have got the enough memory space in contrast to three nodes, which memory is shared.
 
-In addition, unlike reference docker-compose.yml, notice that we have added in a networks section in our docker-compose.yml. That's because later it will be necessary to add the Logstash container to the Elastic-Kibana containers. As Logstash container is a single-use container, we won't deploy it in the docker-compose.yml with Kibana and Elastic, but we will deploy it with docker run command to test our .conf file. As a result, it's necessary to specify the network when ´´´docker run´´´ Logstash container later.
+In addition, unlike reference docker-compose.yml, notice that we have added in a networks section in our docker-compose.yml. That's because later it will be necessary to add the Logstash container to the Elastic-Kibana containers. As Logstash container is a single-use container, we won't deploy it in the docker-compose.yml with Kibana and Elastic, but we will deploy it with docker run command to test our .conf file. As a result, it's necessary to specify the network when ```docker run``` Logstash container later.
 
 # Run logstash
 
