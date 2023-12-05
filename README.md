@@ -88,11 +88,25 @@ xpack.monitoring.enabled: true
 xpack.monitoring.elasticsearch.hosts: ["http://es01:9200"]
 ```
 
-2. ```docker run``` the logstash image. Please, use the same version you specified in .env file so that Elastic, Kibana and Logstash share the same version. To this end, you can move to the directory where you cloned this repository (i.e., the directory where the .env is located) and then run the following command:
+2. Create your .conf file. For example, you can create a Logstash pipeline to ETL (Extract, Transform and Load) data from stdin (Standard Input) terminal into some Elasticsearch index using this .conf file:
+
+```
+input { stdin { } }
+output {
+  elasticsearch {
+    hosts => ["http://es01:9200"]
+    index => "logstashtest"
+  }
+}
+```
+
+3. ```docker run``` the logstash image. Please, use the same version you specified in .env file so that Elastic, Kibana and Logstash share the same version. To this end, you can move to the directory where you cloned this repository (i.e., the directory where the .env is located) and then run the following command:
 
 ```
 docker run --rm -it -v ./logstash_configfiles/pipelines/my-conf.conf:/usr/share/logstash/pipeline/my-conf.conf -v ./logstash_configfiles/settings/logstash.yml:/usr/share/logstash/config/logstash.yml --network stack_elk_stackELK-net docker.elastic.co/logstash/logstash:${STACK_VERSION}
 ```
+
+Once you have Logstash running, you can write something on terminal and then access to logstashtest index in ElasticSearch node on your browser (http://localhost:9200/logstashtest) to check out whether your input data has been loaded in Elasticsearch or not.
 
 Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
 
