@@ -13,7 +13,7 @@ The steps you need to follow are:
 
 1. Modify .env template file with the values you want. You have a version for multinode ES cluster and singlenode ES cluster.
 2. Rename that .env file to ```.env``` so that it is recognized by docker.
-3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-composte-singlenode.yml and rename it in the same way.
+3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-compose-singlenode.yml and rename it in the same way.
 
 By default, kibana and elastic username is ```kibana_system```.
 
