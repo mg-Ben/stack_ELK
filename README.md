@@ -65,7 +65,7 @@ Error diagnosis:
 
 ```https://localhost:9200/_cluster/allocation/explain```
 
-If your need credentials, use ```username: kibana_system``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
+If you need credentials, use ```username: kibana_system``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
 
 To solve this issue, you can use singlenode approach, as one node will have got the enough memory space in contrast to three nodes, which memory is shared.
 
