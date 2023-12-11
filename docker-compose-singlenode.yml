@@ -16,6 +16,13 @@ services:
      - cluster.name=es-cluster
     networks:
      - stackELK-net
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65535
+        hard: 65535
 
   kibana:
     depends_on:
