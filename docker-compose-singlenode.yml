@@ -10,8 +10,9 @@ services:
     ports:
       - ${ES_PORT}:9200
     environment:
-     - xpack.security.enabled=false
      - discovery.type=single-node
+     - node.name=es01
+     - cluster.name=es-cluster
     networks:
      - stackELK-net
 
