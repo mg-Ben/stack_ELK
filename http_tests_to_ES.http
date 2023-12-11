@@ -1,1 +1,10 @@
-GET http://localhost:9200/logstashtest
+POST http://localhost:9200/customer/_doc/2
+Content-Type: application/json
+
+{
+  "firstname": "Jennifer",
+  "lastname": "Walters"
+}
+
+###
+GET http://localhost:9200/customer/_doc/1
