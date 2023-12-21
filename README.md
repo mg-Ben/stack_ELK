@@ -76,8 +76,9 @@ In this repository, there is a .http file to make test HTTP requests from VSCode
 *NOTE: If you are still encountering disk usage error even for singlenode cluster, it may be because of the host system available disk space. If your host machine is running on a VM with VMware, consider following these steps:*
 
 1. Go to VMware > Right click on your VM > Settings > Hard disk > Expand. Select the new disk capacity allocated for your VM.
-2. Run your Linux VM. Install gparted: ```sudo apt-get install gparted```. Re-mount your file system as read-write mode (```sudo mount -o remount,rw /dev/sdXY, e.g., sda3```). In case you don't know which disk partition (sda1, sda2, sda3...) is the file system, you can run gparted (write ```gparted``` in your terminal).
-3. Go to gparted and right click over file system partition > orange arrow (resize).
+2. Unmount the file system: ```sudo umount /dev/sdXY``` (e.g., sda3).
+3. Run your Linux VM. Install gparted: ```sudo apt-get install gparted```. Re-mount your file system as read-write mode (```sudo mount -o remount,rw /dev/sdXY```, e.g., sda3). In case you don't know which disk partition (sda1, sda2, sda3...) is the file system, you can run gparted (write ```gparted``` in your terminal).
+4. Go to gparted and right click over file system partition > orange arrow (resize).
 
 # Run logstash
 
