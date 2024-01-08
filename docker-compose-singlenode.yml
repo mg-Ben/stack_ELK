@@ -2,7 +2,7 @@ version: "2.2"
 
 services:
   es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
     volumes:
       - esdata01:/usr/share/elasticsearch/data
       #Bind-mount: in case you want a custom elastic.yml configuration:
@@ -15,7 +15,7 @@ services:
      - node.name=es01
      - cluster.name=es-cluster
     networks:
-     - stackELK-net
+     - stack-net
     ulimits:
       memlock:
         soft: -1
@@ -24,30 +24,30 @@ services:
         soft: 65535
         hard: 65535
 
-  kibana:
+  grafana:
     depends_on:
        - es01
-    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    image: grafana/grafana-enterprise:${GRAFANA_VERSION}
     volumes:
-      - kibanadata:/usr/share/kibana/data
-      #Bind-mount: in case you want a custom kibana.yml configuration:
-      #- ./kibana_configfiles/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - grafanadata:/var/lib/grafana
+      - grafanaplugins:/var/lib/grafana/plugins
     ports:
-      - ${KIBANA_PORT}:5601
+      - ${GRAFANA_PORT}:3000
     environment:
-      - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=http://es01:9200
-      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - GF_INSTALL_PLUGINS=${GRAFANA_PLUGINS}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
     networks:
-     - stackELK-net
+     - stack-net
 
 volumes:
   esdata01:
     driver: local
-  kibanadata:
+  grafanadata:
+    driver: local
+  grafanaplugins:
     driver: local
 
 networks:
-  stackELK-net:
+  stack-net:
     driver: bridge
