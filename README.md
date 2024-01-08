@@ -29,7 +29,7 @@ ERROR: Elasticsearch exited unexpectedly, with exit code 78
 
 To set this parameter on Linux systems, you can access to /etc/sysctl.conf file on your host Linux machine and add this line: ```vm.max_map_count=262144```. Then, reboot your host machine and run ```docker compose up```.
 
-On the other hand, we might get a message error from Kibana related to the .kibana index. This is owing to a disk usage of each node (if it's critically low, [Kibana might get unavailable](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/fix-watermark-errors.html)). Typically, you can diagnose these errors using an API. For example, you can GET the resource ```/_cluster/allocation/explain``` while node cluster is running to diagnose this kind of allocation errors, i.e., if you get this error when deploying Kibana, then go to this URL in your navigator:
+On the other hand, we might get a message error from Kibana related to the .kibana index. This is owing to a disk usage of each node (if it's critically low, [Kibana might get unavailable](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/fix-watermark-errors.html)). Typically, you can diagnose these errors using an API. For example, you can GET the resource ```/_cluster/allocation/explain``` while node cluster is running to diagnose this kind of allocation errors, i.e., if you get this error when deploying Kibana, then go to this URL in your navigator (see below):
 
 Error log:
 
