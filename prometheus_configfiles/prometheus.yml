@@ -2,3 +2,7 @@ scrape_configs:
   - job_name: 'prometheus-itself'
     static_configs:
       - targets: ['localhost:9090']
+  - job_name: 'snmp-server'
+    scrape_interval: 1s
+    static_configs:
+      - targets: ['<your_agent_IP>:9116']

@@ -27,6 +27,8 @@ Add a new Prometheus database and set the URL (Connection URL field).
 
 ![Alt text](/doc/images/image-2.png)
 
+Prometheus has got its own built-in User Interface, so Grafana is not compulsory to visualize data, but recommended. To explore Prometheus data, just go to ```http://localhost:<your_prometheus_port>```.
+
 Prometheus typically works scraping **instances** (processes). A group of instances is called **job**. Those instances are often HTTP endpoints (or they can be generically ```IP:port``` tuples), but they cannot be any endpoint, but must be specific endpoints/instances/processes which are compatible with Prometheus. For example, you can use [**exporters**](https://prometheus.io/docs/instrumenting/exporters/), which are Prometheus-oriented processes that are ready to be scraped by Prometheus (some of them are GitHub repositories). Just download the exporter you want (e.g., the .zip binary) on the machine where the process will be scraped, then unzip it and run the executable. While it is running on that remote (or local) machine, add the job and instance to ```prometheus.yml``` file (location: ```/etc/prometheus.yml``` inside the docker container). Luckily, you don't have to care about moving the file to the container (I have thought of you :D): just edit the ```./prometheus_configfiles/prometheus.yml``` of this repository and the file will be bind-mounted to ```/etc/prometheus.yml``` file inside the docker container once it is running:
 
 _If you don't trust me, take a look at docker-compose-singlenode.yml:_
@@ -56,3 +58,16 @@ scrape_configs:
 _(Remember that Prometheus is running inside a container and that this file will be inside the container, so localhost:9090 will be=The Prometheus container:Port 9090 (therefore, it is right))_
 
 Once you are scraping an instance, several time series (called **metrics**) are stored in Prometheus for that instance. The time series will be stored with the format ```<metric_name>{job=<job_name>, instance=<instance_name>}```. In the example, the time series with the Prometheus instance data would be stored with ```job=prometheus-itself``` (but you can choose the name you want) and ```instance=localhost:9090``` Consequently, you can go to Prometheus (type ```http//localhost:9090``` on web browser) and query the time series (metric_name) filtering by job and instance: E.g.: ```up{job='prometheus-itself', instance='localhost:9090'}```. You can also check whether it is scraping or not moving into Status > Targets.
+
+## SNMP Exporter example
+
+You can run [SNMP Exporter](https://github.com/prometheus/snmp_exporter) on a remote device and monitor it with Prometheus. To this end, go to the [SNMP Exporter binaries](https://github.com/prometheus/snmp_exporter/releases), download the ```.zip``` file depending on your processor architecture (see it with ```lshw``` on Linux systems or ```set processor``` on Windows systems) and decompress it on the machine which you want to monitor. Then, access to decompressed directory and look for the executable (.sh) file. Run it and your device will be ready to be monitored.
+
+Once the SNMP server agent is running (it runs on 9116 port), identify the IP address of the device (```ifconfig``` on Linux systems, ```ipconfig``` on Windows systems) and then connect to that target from Prometheus:
+
+```
+- job_name: 'snmp-server'
+  scrape_interval: 1s
+  static_configs:
+    - targets: ['<your_agent_IP>:9116']
+```
