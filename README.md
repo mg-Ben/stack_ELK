@@ -27,7 +27,32 @@ Add a new Prometheus database and set the URL (Connection URL field).
 
 ![Alt text](/doc/images/image-2.png)
 
-Nonetheless, on condition you want to add custom data, send everything you want to the Push Gateway:
+Prometheus typically works scraping **instances** (processes). A group of instances is called **job**. Those instances are often HTTP endpoints (or they can be generically ```IP:port``` tuples), but they cannot be any endpoint, but must be specific endpoints/instances/processes which are compatible with Prometheus. For example, you can use [**exporters**](https://prometheus.io/docs/instrumenting/exporters/), which are Prometheus-oriented processes that are ready to be scraped by Prometheus (some of them are GitHub repositories). Just download the exporter you want (e.g., the .zip binary) on the machine where the process will be scraped, then unzip it and run the executable. While it is running on that remote (or local) machine, add the job and instance to ```prometheus.yml``` file (location: ```/etc/prometheus.yml``` inside the docker container). Luckily, you don't have to care about moving the file to the container (I have thought of you :D): just edit the ```./prometheus_configfiles/prometheus.yml``` of this repository and the file will be bind-mounted to ```/etc/prometheus.yml``` file inside the docker container once it is running:
+
+_If you don't trust me, take a look at docker-compose-singlenode.yml:_
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"job": "test", "instance": "localhost:9090", "metric": "my_metric", "value": 42}' http://localhost:9090/metrics/job/test
+prom01:
+    image: prom/prometheus:${PROMETHEUS_VESION}
+    ports:
+      - ${PROMETHEUS_PORT}:9090
+      - ${PROMETHEUS_PUSHGATEWAY_PORT}:9091
+    networks:
+      - stack-net
+    volumes:
+      - prom01data:/prometheus
+      - ./prometheus_configfiles:/etc/prometheus <------------------------------ Here!
 ```
+
+For example, you can scrap the Prometheus instance itself specifying the following target endpoint in ```./prometheus_configfiles/prometheus.yml```:
+
+```
+scrape_configs:
+  - job_name: 'prometheus-itself'
+    scrape_interval: 5s #This is the sampling period
+    static_configs:
+      - targets: ['localhost:9090']
+```
+
+_(Remember that Prometheus is running inside a container and that this file will be inside the container, so localhost:9090 will be=The Prometheus container:Port 9090 (therefore, it is right))_
+
+Once you are scraping an instance, several time series (called **metrics**) are stored in Prometheus for that instance. The time series will be stored with the format ```<metric_name>{job=<job_name>, instance=<instance_name>}```. In the example, the time series with the Prometheus instance data would be stored with ```job=prometheus-itself``` (but you can choose the name you want) and ```instance=localhost:9090``` Consequently, you can go to Prometheus (type ```http//localhost:9090``` on web browser) and query the time series (metric_name) filtering by job and instance: E.g.: ```up{job='prometheus-itself', instance='localhost:9090'}```. You can also check whether it is scraping or not moving into Status > Targets.

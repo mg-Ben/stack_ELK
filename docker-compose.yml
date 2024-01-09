@@ -10,8 +10,7 @@ services:
       - stack-net
     volumes:
       - prom01data:/prometheus
-      # - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
+      - ./prometheus_configfiles:/etc/prometheus
   grafana:
     depends_on:
        - prom01
