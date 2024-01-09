@@ -1,6 +1,6 @@
 # Stack ELK (Elastic + Logstash + Kibana) container prototype
 
-Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define these parameter values:
+Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define previously before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define these parameter values:
 
 - ElasticSearch password
 - Kibana password
@@ -9,13 +9,18 @@ Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and K
 - Kibana port (```defaul: 5601```)
 - Others such as memory limit, license, docker project name, docker elasticsearch cluster name...
 
+In this repository you will find three variants of the stack:
+- **Main architecture**: Elasticsearch as database + Logstash as intermediate data processor + Kibana as data visualizer.
+- **Grafana variant**: Elasticsearch as database + Logstash as intermediate data processor + Grafana as data visualizer.
+- **Prometheus+Grafana variant**: In this case no Elastic stack containers are used (neither Elasticsearch, Logstash or Kibana). Only Prometheus as database and Grafana as data visualizer.
+
 The steps you need to follow are:
 
 1. Modify .env template file with the values you want. You have a version for multinode ES cluster and singlenode ES cluster.
 2. Rename that .env file to ```.env``` so that it is recognized by docker.
 3. Copy the .yml file depending on whether you want to deploy a multinode cluster or not. In case you want to deploy multinode cluster, please copy docker-compose-multinode.yml file and rename the copy with ```docker-compose.yml```. Otherwise, copy docker-compose-singlenode.yml and rename it in the same way.
 
-By default, kibana and elastic username is ```kibana_system```.
+_By default, kibana and elastic username is ```kibana_system```._
 
 With the [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) that we can find in the tutorial for multinode cluster, by default three nodes are created for ElasticSearch DB Cluster (es01, es02 and es03), but user can add as many as they want.
 
