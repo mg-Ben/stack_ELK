@@ -3,6 +3,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
   - job_name: 'snmp-server'
-    scrape_interval: 1s
+    metrics_path: '/snmp'
+    params:
+      target: ['<your_agent_IP>']
     static_configs:
-      - targets: ['<your_agent_IP>:9116']
+    - targets: ['<your_manager_IP>:9116']

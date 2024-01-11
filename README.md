@@ -71,3 +71,41 @@ Once the SNMP server agent is running (it runs on 9116 port), identify the IP ad
   static_configs:
     - targets: ['<your_agent_IP>:9116']
 ```
+
+However, SNMP Exporter can act as SNMP Manager instead of SNMP agent: this is, you can run the Exporter on any machine. Then run a SNMP agent on the remote machine that you want to monitor (to do this, if that remote machine uses Linux OS, you can use ```snmpd``` package; install it with ```sudo apt install snmp``` and run the SNMP service as ```systemctl start snmpd```). Once the remote machine is running, on Prometheus configuration file (```prometheus.yml```) set the scrap endpoint (which is the SNMP **manager** process, not the agent) and use a query string to select the remote device which is running the SNMP agent (i.e., the device who wants to be monitored). You can also set a custom label to identify that device on Prometheus:
+
+```
+- job_name: 'snmp-server'
+  scrape_interval: 1s
+  static_configs:
+    - targets: ['<your_manager_IP>:9116/snmp?target=<your_agent_IP>']
+      labels:
+        - snmp_agent: my_laptop
+```
+
+BUT in Prometheus you cannot set targets with different format than ```IP:port```, and it's not possible to (1) pass query strings like ```?target=IP``` or (2) access to certain endpoint inside your process like ```/snmp``` on targets field. For this purpose, there are some dedicated fields:
+
+- **metrics_path**: to set the specific endpoint ```/snmp```
+- **params**: to set query string key-value pairs like ```target=<your_agent_IP>```
+
+```
+- job_name: 'snmp-server'
+  metrics_path: '/snmp'
+  params:
+    target: ['<your_agent_IP>']
+  static_configs:
+  - targets: ['<your_manager_IP>:9116']
+```
+
+Finally, if you want to make tests with a running SNMP remote agent, that remote machine must "want to be monitored", so you will have to configure it to accept SNMP requests. Go to your remote machine and:
+
+1. Install snmpd package with ```sudo apt install snmpd```
+2. Configure snmpd daemon in ```/etc/snmp/snmpd.conf```. Set explicitly the port where to allocate SNMP agent server:
+
+```
+agentaddress udp:161
+```
+
+3. Restart the snmpd service: ```sudo systemctl restart snmpd```. Your SNMP agent is ready to receive data.
+
+_REMEMBER: If you are running the agent or the exporter inside a Virtual Machine, that Virtual Machine must be reachable on your (W)LAN. This means that your Virtual Machine must have an assigned IP address on your LAN (the DHCP server on your (W)LAN is the responsible of this task) as if your host machine had a new Network Interface (like Ethernet, WiFi etc) corresponding to that VM. To expose your VM like a new device on your LAN, Go to VMware > Your VM Settings > Network Adapter > Set Bridged. Another solution is to consider that your VM is the same device as the host machine, so they share the IP address (=Host IP Address), but your VM must have dedicated ports and it might be necessary to dive into additional settings, so this is not recommended_
