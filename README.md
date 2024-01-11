@@ -90,11 +90,14 @@ BUT in Prometheus you cannot set targets with different format than ```IP:port``
 
 ```
 - job_name: 'snmp-server'
-  metrics_path: '/snmp'
-  params:
-    target: ['<your_agent_IP>']
-  static_configs:
-  - targets: ['<your_manager_IP>:9116']
+    metrics_path: '/snmp'
+    scrape_interval: 1s
+    params:
+      target: ['<your_agent_IP>']
+    static_configs:
+    - targets: ['<your_manager_IP>:9116']
+      labels:
+        - snmp_agent: my_laptop
 ```
 
 Finally, if you want to make tests with a running SNMP remote agent, that remote machine must "want to be monitored", so you will have to configure it to accept SNMP requests. Go to your remote machine and:
