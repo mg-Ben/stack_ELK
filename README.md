@@ -68,7 +68,7 @@ stack_elk-kibana-1  | [2023-12-04T11:03:06.950+00:00][ERROR][savedobjects-servic
 
 Error diagnosis:
 
-```https://localhost:9200/_cluster/allocation/explain```
+```https://localhost:<ES_PORT>/_cluster/allocation/explain```
 
 If you need credentials, use ```username: <the ELASTICSEARCH_USERNAME you set in .env file>``` and ```password: <the ELASTIC_PASSWORD you set in .env file>```
 
