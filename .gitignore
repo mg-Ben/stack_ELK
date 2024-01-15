@@ -1,3 +1,4 @@
 docker-compose.yml
 .env
 http_tests_to_ES.http
+/prometheus_config/prometheus.yml
