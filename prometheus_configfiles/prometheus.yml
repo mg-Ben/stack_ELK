@@ -1,0 +1,13 @@
+scrape_configs:
+  - job_name: 'prometheus-itself'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'snmp-server'
+    metrics_path: '/snmp'
+    scrape_interval: 1s
+    params:
+      target: ['<your_agent_IP>']
+    static_configs:
+    - targets: ['<your_manager_IP>:9116']
+      labels:
+        snmp_agent: my_laptop
