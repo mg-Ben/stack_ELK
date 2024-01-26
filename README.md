@@ -21,13 +21,13 @@ Add a new Elasticsearch database and set the URL (Connection URL field).
 ***NOTE***: To make your tests with your ElasticSearch Data, the documents inside the index must contain the @timestamp field. You can create a test index and add it some data metrics to begin your tests as It follows:
 
 1. Create an index with timestamp mapping. Run this command from your console while your ElasticSearch instance is running:
-```
+```shell
 curl -X PUT "http://localhost:<your_elasticsearch_port>/<index_name_you_want>" -H 'Content-Type: application/json' -d '{"mappings": {"properties": {"@timestamp": {"type": "date"}, "field1": {"type": "keyword"}, "field2": {"type": "text"}}}}'
 ```
 
 2. Add a document to the recently created index:
 
-```
+```shell
 curl -X POST "http://localhost:<your_elasticsearch_port>/<index_name_you_want>/_doc" -H 'Content-Type: application/json' -d '{"@timestamp": "2024-01-08T12:00:00", "field1": "value1", "field2": "value2"}'
 ```
 
