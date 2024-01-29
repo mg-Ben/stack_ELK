@@ -34,7 +34,7 @@ Prometheus typically works scraping **instances** (processes). A group of instan
 _If you don't trust me, take a look at docker-compose-singlenode.yml:_
 ```
 prom01:
-    image: prom/prometheus:${PROMETHEUS_VESION}
+    image: prom/prometheus:${PROMETHEUS_VERSION}
     ports:
       - ${PROMETHEUS_PORT}:9090
       - ${PROMETHEUS_PUSHGATEWAY_PORT}:9091
