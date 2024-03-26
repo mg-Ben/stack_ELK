@@ -1,4 +1,4 @@
-# Stack ELK (Elastic + Logstash + Kibana) container prototype
+# Stack ELK (Elastic + Logstash + Kibana) container prototype without SSL/TLS security
 
 Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define previously before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define these parameter values:
 
@@ -125,6 +125,18 @@ docker run --rm -it -v ./logstash_configfiles/pipelines/my-conf.conf:/usr/share/
 Once you have Logstash running, you can write something on terminal and then access to logstashtest index in ElasticSearch node on your browser (http://localhost:9200/logstashtest) to check out whether your input data has been loaded in Elasticsearch or not.
 
 Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
+
+# Stack ELK (Elastic + Logstash + Kibana) container prototype with SSL/TLS security
+There are three security levels you can configure on a Elastic Stack:
+
+![image](https://github.com/mg-Ben/stack_ELK/assets/71702235/72711b86-0d46-420e-b2ed-dff3c968fc9b)
+
+- The lowest security level only implements user passwords for ElasticSearch and Kibana.
+- The second security level only implements TLS in the communication between ElasticSearch nodes. However, not for external communication with the ElasticSearch database cluster (e.g. between Kibana and the cluster). 
+- The highest security level implements TLS in the communication between ElasticSearch nodes and external communication with ElasticSearch database cluster, such as the communication among Kibana or Beats with the cluster.
+- 
+Here we will explain how to manually configure the highest level of security. 
+
 
 # Common issues
 ## Cannot start with [discovery.type] set to [single-node]
