@@ -126,6 +126,14 @@ Once you have Logstash running, you can write something on terminal and then acc
 
 Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
 
+# Common issues
+## Cannot start with [discovery.type] set to [single-node]
+Error message:
+```
+Cannot start with [discovery.type] set to [single-node] when local node {es01}{...} does not have quorum...
+```
+This is because the node ```es01``` belonged to a previous cluster. However, this error might appear even though this is the first time you are deploying your single-node cluster. That's because some data might have persisted from previous tests you have done. To solve this, just remove the docker volumes where cluster information lies in and re-build everything: images and containers with ```docker compose up --build --force-recreate```.
+
 # References:
 
 [1] [Elasticsearch Official Doc](https://www.elastic.co/guide/en/elasticsearch/reference)
