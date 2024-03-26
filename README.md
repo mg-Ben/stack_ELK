@@ -127,16 +127,32 @@ Once you have Logstash running, you can write something on terminal and then acc
 Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
 
 # Stack ELK (Elastic + Logstash + Kibana) container prototype with SSL/TLS security
-There are three security levels you can configure on a Elastic Stack:
+There are three security levels you can configure on a Elastic Stack [4]:
 
 ![image](https://github.com/mg-Ben/stack_ELK/assets/71702235/72711b86-0d46-420e-b2ed-dff3c968fc9b)
 
-- The lowest security level only implements user passwords for ElasticSearch and Kibana.
-- The second security level only implements TLS in the communication between ElasticSearch nodes. However, not for external communication with the ElasticSearch database cluster (e.g. between Kibana and the cluster). 
-- The highest security level implements TLS in the communication between ElasticSearch nodes and external communication with ElasticSearch database cluster, such as the communication among Kibana or Beats with the cluster.
-- 
-Here we will explain how to manually configure the highest level of security. 
+- The lowest (minimal) security level only implements user passwords for ElasticSearch and Kibana.
+- The second (basic) security level only implements TLS in the communication between ElasticSearch nodes. However, not for external communication with the ElasticSearch database cluster (e.g. between Kibana and the cluster). 
+- The highest (basic + TLS) security level implements TLS in the communication between ElasticSearch nodes and external communication with ElasticSearch database cluster, such as the communication among Kibana or Beats with the cluster.
 
+Here we will explain how to manually configure the highest level of security:
+
+## 1. Configure the second (basic) security level
+_Refer to [5]_
+1. Get the elasticsearch-certutil tool. To do so, download ElasticSearch package from [here](https://www.elastic.co/es/downloads/elasticsearch).
+2. Uncompress the ```.tar.gz``` binary and look for ```/bin/elasticsearch-certutil```.
+3. Run it. Generate the Certificate Authority and its password with `./elasticsearch-certutil ca`. The output will be a `.p12` file.
+4. Use that `.p12` file to generate the certificate for the nodes (we will use the same certificate for each node) with `./elasticsearch-certutil cert --ca elastic-stack-ca.p12`.
+5. Move that file into ```/usr/share/elasticsearch``` path inside the container. To do so, add this line in your ```docker-compose.yml``` for each node:
+
+```yaml
+services:
+	my_ES_node_i:
+		volumes:
+			- path_in_host_OS/file.p12:/usr/share/elasticsearch/file.p12
+```
+
+6. 
 
 # Common issues
 ## Cannot start with [discovery.type] set to [single-node]
@@ -153,3 +169,7 @@ This is because the node ```es01``` belonged to a previous cluster. However, thi
 [2] [docker-compose.yml with Elasticsearch cluster of 3 nodes and kibana](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml)
 
 [3] [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env)
+
+[4] [Security layers in Elastic Stack](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/manually-configure-security.html)
+
+[5] [Configure the lowest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup.html)
