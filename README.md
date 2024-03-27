@@ -138,21 +138,31 @@ There are three security levels you can configure on a Elastic Stack [4]:
 Here we will explain how to manually configure the highest level of security:
 
 ## 1. Configure the second (basic) security level
-_Refer to [5]_
+_Refer to [5] and [6]_
 1. Get the elasticsearch-certutil tool. To do so, download ElasticSearch package from [here](https://www.elastic.co/es/downloads/elasticsearch).
 2. Uncompress the ```.tar.gz``` binary and look for ```/bin/elasticsearch-certutil```.
 3. Run it. Generate the Certificate Authority and its password with `./elasticsearch-certutil ca`. The output will be a `.p12` file.
 4. Use that `.p12` file to generate the certificate for the nodes (we will use the same certificate for each node) with `./elasticsearch-certutil cert --ca elastic-stack-ca.p12`.
-5. Move that file into ```/usr/share/elasticsearch``` path inside the container. To do so, add this line in your ```docker-compose.yml``` for each node:
+5. Move the node certificate resulting file of the previous command into ```/usr/share/elasticsearch/config``` path inside the container. To do so, add this line in your ```docker-compose.yml``` for each node:
 
 ```yaml
 services:
-	my_ES_node_i:
-		volumes:
-			- path_in_host_OS/file.p12:/usr/share/elasticsearch/file.p12
+    my_ES_node_i:
+        volumes:
+            - path_in_host_OS/node-certificate.p12:/usr/share/elasticsearch/config/node-certificate.p12
 ```
 
-6. 
+6. If you set a password for the node certificate, it's also necessary to store it in ```elasticsearch.keystore``` file inside the container. For this reason, you need to run ```/bin/elasticsearch-keystore``` tool specifying the node password when prompted. Specifically, run it twice: ```./elasticsearch-certutil add xpack.security.transport.ssl.keystore.secure_password``` and ```./elasticsearch-certutil add xpack.security.transport.ssl.truststore.secure_password```. You can check whether the password has been added to keystore file or not by ```./elasticsearch-certutil list```.
+7. Bind mount the ```elasticsearch.keystore``` file into docker container:
+
+```yaml
+services:
+    my_ES_node_i:
+        volumes:
+            - path_in_host_OS/node-certificate.p12:/usr/share/elasticsearch/config/node-certificate.p12
+            - path_in_host_OS/elasticsearch.keystore:/usr/share/elasticsearch/config/elasticsearch.keystore
+```
+
 
 # Common issues
 ## Cannot start with [discovery.type] set to [single-node]
@@ -173,3 +183,5 @@ This is because the node ```es01``` belonged to a previous cluster. However, thi
 [4] [Security layers in Elastic Stack](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/manually-configure-security.html)
 
 [5] [Configure the lowest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup.html)
+
+[6] [Configure the lowest security level on 6.6 ES version](https://www.elastic.co/guide/en/elasticsearch/reference/6.6/configuring-tls-docker.html)
