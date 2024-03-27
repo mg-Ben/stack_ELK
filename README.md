@@ -163,6 +163,9 @@ services:
             - path_in_host_OS/elasticsearch.keystore:/usr/share/elasticsearch/config/elasticsearch.keystore
 ```
 
+## 2. Configure the highest (basic + TLS) security level
+_Refer to [7]_
+
 
 # Common issues
 ## Cannot start with [discovery.type] set to [single-node]
@@ -185,3 +188,5 @@ This is because the node ```es01``` belonged to a previous cluster. However, thi
 [5] [Configure the lowest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup.html)
 
 [6] [Configure the lowest security level on 6.6 ES version](https://www.elastic.co/guide/en/elasticsearch/reference/6.6/configuring-tls-docker.html)
+
+[7] [Configure the highest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup-https.html)
