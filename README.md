@@ -1,4 +1,4 @@
-# Stack ELK (Elastic + Logstash + Kibana) container prototype
+# Stack ELK (Elastic + Logstash + Kibana) container prototype without SSL/TLS security
 
 Each component in stack ELK (ElasticSearch cluster-node Database, Logstash and Kibana) is a separated container with different base images. Those containers are defined in [docker-compose.yml](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml) file, except **Logstash**, which must be launched inside another single-use container. Nonetheless, that .yml file needs some [environment variables](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html) we have to define previously before ```docker compose up```. We will use the [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env) to define these parameter values:
 
@@ -126,6 +126,55 @@ Once you have Logstash running, you can write something on terminal and then acc
 
 Note that the network name is different than the network name you set in docker-compose.yml. That's because docker renames the networks appending the directory name in lowercase (you can see your network name by ```docker network ls```).
 
+# Stack ELK (Elastic + Logstash + Kibana) container prototype with SSL/TLS security
+There are three security levels you can configure on a Elastic Stack [4]:
+
+![image](https://github.com/mg-Ben/stack_ELK/assets/71702235/72711b86-0d46-420e-b2ed-dff3c968fc9b)
+
+- The lowest (minimal) security level only implements user passwords for ElasticSearch and Kibana.
+- The second (basic) security level only implements TLS in the communication between ElasticSearch nodes. However, not for external communication with the ElasticSearch database cluster (e.g. between Kibana and the cluster). 
+- The highest (basic + TLS) security level implements TLS in the communication between ElasticSearch nodes and external communication with ElasticSearch database cluster, such as the communication among Kibana or Beats with the cluster.
+
+Here we will explain how to manually configure the highest level of security:
+
+## 1. Configure the second (basic) security level
+_Refer to [5] and [6]_
+1. Get the elasticsearch-certutil tool. To do so, download ElasticSearch package from [here](https://www.elastic.co/es/downloads/elasticsearch).
+2. Uncompress the ```.tar.gz``` binary and look for ```/bin/elasticsearch-certutil```.
+3. Run it. Generate the Certificate Authority and its password with `./elasticsearch-certutil ca`. The output will be a `.p12` file.
+4. Use that `.p12` file to generate the certificate for the nodes (we will use the same certificate for each node) with `./elasticsearch-certutil cert --ca elastic-stack-ca.p12`.
+5. Move the node certificate resulting file of the previous command into ```/usr/share/elasticsearch/config``` path inside the container. To do so, add this line in your ```docker-compose.yml``` for each node:
+
+```yaml
+services:
+    my_ES_node_i:
+        volumes:
+            - path_in_host_OS/node-certificate.p12:/usr/share/elasticsearch/config/node-certificate.p12
+```
+
+6. If you set a password for the node certificate, it's also necessary to store it in ```elasticsearch.keystore``` file inside the container. For this reason, you need to run ```/bin/elasticsearch-keystore``` tool specifying the node password when prompted. Specifically, run it twice: ```./elasticsearch-certutil add xpack.security.transport.ssl.keystore.secure_password``` and ```./elasticsearch-certutil add xpack.security.transport.ssl.truststore.secure_password```. You can check whether the password has been added to keystore file or not by ```./elasticsearch-certutil list```.
+7. Bind mount the ```elasticsearch.keystore``` file into docker container:
+
+```yaml
+services:
+    my_ES_node_i:
+        volumes:
+            - path_in_host_OS/node-certificate.p12:/usr/share/elasticsearch/config/node-certificate.p12
+            - path_in_host_OS/elasticsearch.keystore:/usr/share/elasticsearch/config/elasticsearch.keystore
+```
+
+## 2. Configure the highest (basic + TLS) security level
+_Refer to [7]_
+
+
+# Common issues
+## Cannot start with [discovery.type] set to [single-node]
+Error message:
+```
+Cannot start with [discovery.type] set to [single-node] when local node {es01}{...} does not have quorum...
+```
+This is because the node ```es01``` belonged to a previous cluster. However, this error might appear even though this is the first time you are deploying your single-node cluster. That's because some data might have persisted from previous tests you have done. To solve this, just remove the docker volumes where cluster information lies in and re-build everything: images and containers with ```docker compose up --build --force-recreate```.
+
 # References:
 
 [1] [Elasticsearch Official Doc](https://www.elastic.co/guide/en/elasticsearch/reference)
@@ -133,3 +182,11 @@ Note that the network name is different than the network name you set in docker-
 [2] [docker-compose.yml with Elasticsearch cluster of 3 nodes and kibana](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/docker-compose.yml)
 
 [3] [.env file](https://github.com/elastic/elasticsearch/blob/8.11/docs/reference/setup/install/docker/.env)
+
+[4] [Security layers in Elastic Stack](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/manually-configure-security.html)
+
+[5] [Configure the lowest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup.html)
+
+[6] [Configure the lowest security level on 6.6 ES version](https://www.elastic.co/guide/en/elasticsearch/reference/6.6/configuring-tls-docker.html)
+
+[7] [Configure the highest security level](https://www.elastic.co/guide/en/elasticsearch/reference/8.12/security-basic-setup-https.html)
