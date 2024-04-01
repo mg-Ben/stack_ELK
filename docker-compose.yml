@@ -2,18 +2,22 @@ version: "2.2"
 
 services:
   es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    build:
+      context: .
+      dockerfile: elasticsearch.Dockerfile
+      args:
+        - STACK_VERSION=${STACK_VERSION}
+        - CA_Password=${CA_Password}
+        - CA_CertificateName=${CA_CertificateName}
+        - Node_Password=${Node_Password}
+        - Node_TLS_CertificateName=${Node_TLS_CertificateName}
+    stdin_open: true
+    tty: true
     volumes:
+      - ./elasticsearch_configfiles/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       - esdata01:/usr/share/elasticsearch/data
-      #Bind-mount: in case you want a custom elastic.yml configuration:
-      #- ./elasticsearch_configfiles/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - ${ES_PORT}:9200
-    environment:
-     - xpack.security.enabled=false
-     - discovery.type=single-node
-     - node.name=es01
-     - cluster.name=es-cluster
     networks:
      - stackELK-net
     ulimits:
@@ -30,15 +34,17 @@ services:
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     volumes:
       - kibanadata:/usr/share/kibana/data
+      - ./kibana_configfiles/elasticsearch-ca.pem:/usr/share/kibana/config/certs/elasticsearch-ca.pem
+      # - ./kibana_configfiles/kibana-server.key:/usr/share/kibana/config/kibana-server.key
+      # - ./kibana_configfiles/kibana.crt:/usr/share/kibana/config/certs/kibana.crt
       #Bind-mount: in case you want a custom kibana.yml configuration:
       #- ./kibana_configfiles/kibana.yml:/usr/share/kibana/config/kibana.yml
     ports:
       - ${KIBANA_PORT}:5601
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=http://es01:9200
-      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_HOSTS=https://es01:${ES_PORT}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/certs/elasticsearch-ca.pem
     networks:
      - stackELK-net
 
